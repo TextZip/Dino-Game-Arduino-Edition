@@ -6,9 +6,9 @@
 #include <SPI.h>
 #include "sprite.c"
 
-const int TICKS_PER_SECOND = 25;
+const int TICKS_PER_SECOND = 50;
 const int SKIP_TICKS = 1000 / TICKS_PER_SECOND;
-const int MAX_FRAMESKIP = 5;
+const int MAX_FRAMESKIP = 40;
 
 const int trunk_w = 29;
 const int trunk_l = 25;
@@ -27,11 +27,13 @@ int color;
 double diff;
 float u;
 bool button_press = "false";
+bool game_running = "true";
 unsigned long next_game_tick;
 unsigned long game_F;
 unsigned long t1;
 unsigned long t2;
 unsigned long t3;
+unsigned long score;
 
 int loops;
 float interpolation;
@@ -39,20 +41,49 @@ float interpolation;
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
 void button() {
-  t2 = millis();
-  u = 90.0;
-  button_press = true;
-  tone(7, 523,30);
-  //Serial.println("Pressed");
+  if (game_running == true){
+    t2 = millis();
+    u = 90.0;
+    button_press = true;
+    tone(7, 523, 30);
+    //Serial.println("Pressed");
+  }else {
+    game_running = true;
+    tft.fillScreen(tft.Color565( 0xff, 0xff, 0xff));
+    score = millis();
+
+  }
+  
 }
 
+void game_over(){
+  game_running = false;
+  tft.setCursor(25, 50);
+  tft.invertDisplay(true);
+  tft.setTextColor(ST7735_RED);
+  tft.invertDisplay(false);
+  tft.setTextSize(2);
+  tft.invertDisplay(true);
+  tft.print("Game Over");
+  tft.invertDisplay(false);
+  tone(7, 523, 60);
+  tft.invertDisplay(true);
+  tone(7, 423, 30);
+  tft.invertDisplay(false);
+  tone(7, 523, 60);
+  tft.invertDisplay(true);
+  tone(7, 423, 30);
+  tft.invertDisplay(false);
+  
+  //add some music + Game over classic display text
+}
 
 void update_game() {
   t1 = millis();
   if (button_press) {
     diff = (abs(t1 - t2)) / 1000.00;
     y = u * diff - 35 * diff * diff;
-    Serial.println(dino_y, 8);
+    //Serial.println(y, 8);
     if (y <= 0 && diff > 1) {             //detect touch down
       u = 0;
       y = 0;
@@ -67,20 +98,20 @@ void update_game() {
 
     if (type_old != type) {
       if (type_old == 1) {
-        tft.fillRoundRect(tree_pos, 99, 4, 29, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-        tft.fillRoundRect(tree_pos - 10, 113, 20, 4, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-        tft.fillRoundRect(tree_pos - 10, 113 - 8, 4, 10, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-        tft.fillRoundRect(tree_pos + 8, 113 - 10, 4, 12, 1.5, tft.Color565( 0x80, 0x80, 0x80));
+        tft.fillRoundRect(tree_pos, 99, 4, 29, 1.5, tft.Color565( 0xff, 0xff, 0xff));
+        tft.fillRoundRect(tree_pos - 10, 113, 20, 4, 1.5, tft.Color565( 0xff, 0xff, 0xff));
+        tft.fillRoundRect(tree_pos - 10, 113 - 8, 4, 10, 1.5, tft.Color565( 0xff, 0xff, 0xff));
+        tft.fillRoundRect(tree_pos + 8, 113 - 10, 4, 12, 1.5, tft.Color565( 0xff, 0xff, 0xff));
       } else if (type_old == 2 ) {
-        tft.fillRoundRect(tree_pos, 108, 4, 20, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-        tft.fillRoundRect(tree_pos - 8, 115, 18, 4, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-        tft.fillRoundRect(tree_pos - 9, 115 - 8, 4, 10, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-        tft.fillRoundRect(tree_pos + 8, 115 - 8, 4, 10, 1.5, tft.Color565( 0x80, 0x80, 0x80));
+        tft.fillRoundRect(tree_pos, 108, 4, 20, 1.5, tft.Color565( 0xff, 0xff, 0xff));
+        tft.fillRoundRect(tree_pos - 8, 115, 18, 4, 1.5, tft.Color565( 0xff, 0xff, 0xff));
+        tft.fillRoundRect(tree_pos - 9, 115 - 8, 4, 10, 1.5, tft.Color565( 0xff, 0xff, 0xff));
+        tft.fillRoundRect(tree_pos + 8, 115 - 8, 4, 10, 1.5, tft.Color565( 0xff, 0xff, 0xff));
 
-        tft.fillRoundRect(tree_pos + 25, 108, 4, 20, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-        tft.fillRoundRect(tree_pos - 8 + 25, 115, 18, 4, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-        tft.fillRoundRect(tree_pos - 9 + 25, 115 - 8, 4, 10, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-        //tft.fillRoundRect(tree_pos+8+25,115-8,4,10,1.5,tft.Color565( 0x80, 0x80, 0x80));
+        tft.fillRoundRect(tree_pos + 25, 108, 4, 20, 1.5, tft.Color565( 0xff, 0xff, 0xff));
+        tft.fillRoundRect(tree_pos - 8 + 25, 115, 18, 4, 1.5, tft.Color565( 0xff, 0xff, 0xff));
+        tft.fillRoundRect(tree_pos - 9 + 25, 115 - 8, 4, 10, 1.5, tft.Color565( 0xff, 0xff, 0xff));
+        //tft.fillRoundRect(tree_pos+8+25,115-8,4,10,1.5,tft.Color565( 0xff, 0xff, 0xff));
 
       }
       type_old = type;
@@ -88,63 +119,66 @@ void update_game() {
 
     }
   }
-
-
+   if ( type == 1 && ((dino_y - y + trunk_l + leg_l) > (128 - 29)) && (dino_x > (tree_pos - 10)) && (dino_x < (tree_pos + 8)) ) {
+    game_over();
+  }else if ( type == 2 && ((dino_y - y + trunk_l + leg_l) > (128 - 20)) && (dino_x > (tree_pos - 9)) && (dino_x < (tree_pos + 35)) ) {
+    game_over();
+  }
 }
 
-void display_game() {
+ void display_game(){
   //check if the dino pose changed, if yes rewrite the old one with background and write the new one else only do leg animation
   //use game_F to switch between leg frames (odd/even)
   if (y_old != y) {
-    drawBitmap(dino_x, dino_y - y, body, trunk_w, trunk_l, 0x07E0);
-    drawBitmap(dino_x, dino_y - y + trunk_l, leg1, leg_w, leg_l, 0x07E0);
-    tft.fillRect(dino_x, dino_y - y - 5, trunk_w + 5, trunk_l + 5, tft.Color565( 0x80, 0x80, 0x80)); //clearing extra bits
-    //drawBitmap(dino_x, dino_y - y, body, 40, 35, tft.Color565( 0x80, 0x80, 0x80));
-    tft.fillRect(dino_x, dino_y - y + trunk_l - 5, leg_w + 5, leg_l + 10, tft.Color565( 0x80, 0x80, 0x80));
-    //drawBitmap(dino_x, dino_y - y+ 35, leg1, 40, 8, tft.Color565( 0x80, 0x80, 0x80));
+    drawBitmap(dino_x, dino_y - y, body, trunk_w, trunk_l, 0x0000);
+    drawBitmap(dino_x, dino_y - y + trunk_l, leg1, leg_w, leg_l,  0x0000);
+    tft.fillRect(dino_x, dino_y - y - 5, trunk_w + 5, trunk_l + 5, tft.Color565( 0xff, 0xff, 0xff)); //clearing extra bits
+    //drawBitmap(dino_x, dino_y - y, body, 40, 35, tft.Color565( 0xff, 0xff, 0xff));
+    tft.fillRect(dino_x, dino_y - y + trunk_l - 5, leg_w + 5, leg_l + 10, tft.Color565( 0xff, 0xff, 0xff));
+    //drawBitmap(dino_x, dino_y - y+ 35, leg1, 40, 8, tft.Color565( 0xff, 0xff, 0xff));
     y_old = y;
     delay(2);
   } else
   {
-    drawBitmap(dino_x, dino_y - y, body, trunk_w, trunk_l, 0x07E0);
+    drawBitmap(dino_x, dino_y - y, body, trunk_w, trunk_l,  0x0000);
     if (game_F % 3 == 0) {
-      //drawBitmap(dino_x, dino_y - y+ 35, leg2, 40, 8, tft.Color565( 0x80, 0x80, 0x80));
-      tft.fillRect(dino_x, dino_y - y + trunk_l, leg_w, leg_l, tft.Color565( 0x80, 0x80, 0x80));
-      drawBitmap(dino_x, dino_y - y + trunk_l, leg1, leg_w, leg_l, 0x07E0);
+      //drawBitmap(dino_x, dino_y - y+ 35, leg2, 40, 8, tft.Color565( 0xff, 0xff, 0xff));
+      tft.fillRect(dino_x, dino_y - y + trunk_l, leg_w, leg_l, tft.Color565( 0xff, 0xff, 0xff));
+      drawBitmap(dino_x, dino_y - y + trunk_l, leg1, leg_w, leg_l,  0x0000);
       //delay(250);
 
     }
     else {
-      tft.fillRect(dino_x, dino_y - y + trunk_l, leg_w, leg_l, tft.Color565( 0x80, 0x80, 0x80));
-      drawBitmap(dino_x, dino_y - y + trunk_l, leg2, leg_w, leg_l, 0x07E0);
+      tft.fillRect(dino_x, dino_y - y + trunk_l, leg_w, leg_l, tft.Color565( 0xff, 0xff, 0xff));
+      drawBitmap(dino_x, dino_y - y + trunk_l, leg2, leg_w, leg_l,  0x0000);
       //delay(250);
 
     }
     game_F++;
   }
   if (type == 1 ) {
-    tft.fillRoundRect(tree_pos, 99, 4, 29, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-    tft.fillRoundRect(tree_pos - 10, 113, 20, 4, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-    tft.fillRoundRect(tree_pos - 10, 113 - 8, 4, 10, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-    tft.fillRoundRect(tree_pos + 8, 113 - 10, 4, 12, 1.5, tft.Color565( 0x80, 0x80, 0x80));
+    tft.fillRoundRect(tree_pos, 99, 4, 29, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+    tft.fillRoundRect(tree_pos - 10, 113, 20, 4, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+    tft.fillRoundRect(tree_pos - 10, 113 - 8, 4, 10, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+    tft.fillRoundRect(tree_pos + 8, 113 - 10, 4, 12, 1.5, tft.Color565(  0xff,  0xff,  0xff));
   } else if (type == 2 ) {
-    tft.fillRoundRect(tree_pos, 108, 4, 20, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-    tft.fillRoundRect(tree_pos - 8, 115, 18, 4, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-    tft.fillRoundRect(tree_pos - 9, 115 - 8, 4, 10, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-    tft.fillRoundRect(tree_pos + 8, 115 - 8, 4, 10, 1.5, tft.Color565( 0x80, 0x80, 0x80));
+    tft.fillRoundRect(tree_pos, 108, 4, 20, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+    tft.fillRoundRect(tree_pos - 8, 115, 18, 4, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+    tft.fillRoundRect(tree_pos - 9, 115 - 8, 4, 10, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+    tft.fillRoundRect(tree_pos + 8, 115 - 8, 4, 10, 1.5, tft.Color565(  0xff,  0xff,  0xff));
 
-    tft.fillRoundRect(tree_pos + 25, 108, 4, 20, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-    tft.fillRoundRect(tree_pos - 8 + 25, 115, 18, 4, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-    tft.fillRoundRect(tree_pos - 9 + 25, 115 - 8, 4, 10, 1.5, tft.Color565( 0x80, 0x80, 0x80));
-    //tft.fillRoundRect(tree_pos+8+25,115-8,4,10,1.5,tft.Color565( 0x80, 0x80, 0x80));
+    tft.fillRoundRect(tree_pos + 25, 108, 4, 20, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+    tft.fillRoundRect(tree_pos - 8 + 25, 115, 18, 4, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+    tft.fillRoundRect(tree_pos - 9 + 25, 115 - 8, 4, 10, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+    //tft.fillRoundRect(tree_pos+8+25,115-8,4,10,1.5,tft.Color565(  0xff,  0xff,  0xff));
 
   }
 
   if (tree_pos > -40) {
     tree_pos = tree_pos - 4;
-    color = ST7735_GREEN;
+    color = ST7735_BLACK;
   } else {
-    color = tft.Color565( 0x80, 0x80, 0x80); // to avoid stray pixels due to border effects
+    color = tft.Color565(  0xff,  0xff,  0xff); // to avoid stray pixels due to border effects
   }
 
 
@@ -190,22 +224,35 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(2), button, FALLING);
   tft.initR(INITR_BLACKTAB);
   tft.setRotation(3);
-  tft.fillScreen(tft.Color565( 0x80, 0x80, 0x80));
+  tft.fillScreen(tft.Color565(  0xff,  0xff,  0xff));
 
-  //drawBitmap(10, 97,body,trunk_w,trunk_l,0x07E0);
-  //drawBitmap(10, 97+25,leg1,leg_w,leg_l,0x07E0);
+  //drawBitmap(10, 97,body,trunk_w,trunk_l, 0x0000);
+  //drawBitmap(10, 97+25,leg1,leg_w,leg_l, 0x0000);
+  //game_over();
 
 
 }
 
-void loop() {
-  tft.fillRect(80, 2, 80, 15, tft.Color565( 0x80, 0x80, 0x80));
+void loop(){
+  while (game_running){
+    tft.fillRect(80, 2, 80, 15, tft.Color565(  0xff,  0xff,  0xff));
   tft.setCursor(80, 2);
   tft.setTextColor(ST7735_RED);
   tft.setTextSize(2);
-  tft.print(millis() / 1000);
-  update_game();
+  tft.print((millis()-score)/ 1000);
+  //update_game();
+  //display_game();
+  loops = 0;
+  while ( millis() > next_game_tick && loops < MAX_FRAMESKIP) {
+    update_game();
+
+    next_game_tick += SKIP_TICKS;
+    loops++;
+  }
+
   display_game();
 
-
+    
+  }
+  
 }
