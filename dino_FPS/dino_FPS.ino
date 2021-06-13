@@ -23,11 +23,18 @@ int type_old;
 
 int type = 2;
 int color;
+float cloud_pos;
+int cloud_height;
+int cloud_type;
+float cloud_pos1;
+int cloud_height1;
+int cloud_type1;
 
 double diff;
 float u;
-bool button_press = "false";
-bool game_running = "true";
+bool button_press = false;
+bool game_running = false;
+bool main_menu=true;
 unsigned long next_game_tick;
 unsigned long game_F;
 unsigned long t1;
@@ -41,22 +48,23 @@ float interpolation;
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
 void button() {
-  if (game_running == true){
+  if (game_running == true) {
     t2 = millis();
     u = 90.0;
     button_press = true;
     tone(7, 523, 30);
     //Serial.println("Pressed");
-  }else {
+  } else {
+    main_menu = false;
     game_running = true;
     tft.fillScreen(tft.Color565( 0xff, 0xff, 0xff));
     score = millis();
 
   }
-  
+
 }
 
-void game_over(){
+void game_over() {
   game_running = false;
   tft.setCursor(25, 50);
   tft.invertDisplay(true);
@@ -68,13 +76,13 @@ void game_over(){
   tft.invertDisplay(false);
   tone(7, 523, 60);
   tft.invertDisplay(true);
-  tone(7, 423, 30);
+  tone(7, 230, 30);
   tft.invertDisplay(false);
   tone(7, 523, 60);
   tft.invertDisplay(true);
-  tone(7, 423, 30);
+  tone(7, 230, 30);
   tft.invertDisplay(false);
-  
+
   //add some music + Game over classic display text
 }
 
@@ -119,14 +127,14 @@ void update_game() {
 
     }
   }
-   if ( type == 1 && ((dino_y - y + trunk_l + leg_l) > (128 - 29)) && (dino_x > (tree_pos - 10)) && (dino_x < (tree_pos + 8)) ) {
+  if ( type == 1 && ((dino_y - y + trunk_l + leg_l) > (128 - 29)) && (dino_x > (tree_pos - 10)) && (dino_x < (tree_pos + 8)) ) {
     game_over();
-  }else if ( type == 2 && ((dino_y - y + trunk_l + leg_l) > (128 - 20)) && (dino_x > (tree_pos - 9)) && (dino_x < (tree_pos + 35)) ) {
+  } else if ( type == 2 && ((dino_y - y + trunk_l + leg_l) > (128 - 20)) && (dino_x > (tree_pos - 9)) && (dino_x < (tree_pos + 35)) ) {
     game_over();
   }
 }
 
- void display_game(){
+void display_game() {
   //check if the dino pose changed, if yes rewrite the old one with background and write the new one else only do leg animation
   //use game_F to switch between leg frames (odd/even)
   if (y_old != y) {
@@ -141,7 +149,7 @@ void update_game() {
   } else
   {
     drawBitmap(dino_x, dino_y - y, body, trunk_w, trunk_l,  0x0000);
-    if (game_F % 3 == 0) {
+    if (game_F % 4 == 0) {
       //drawBitmap(dino_x, dino_y - y+ 35, leg2, 40, 8, tft.Color565( 0xff, 0xff, 0xff));
       tft.fillRect(dino_x, dino_y - y + trunk_l, leg_w, leg_l, tft.Color565( 0xff, 0xff, 0xff));
       drawBitmap(dino_x, dino_y - y + trunk_l, leg1, leg_w, leg_l,  0x0000);
@@ -174,8 +182,8 @@ void update_game() {
 
   }
 
-  if (tree_pos > -40) {
-    tree_pos = tree_pos - 4;
+  if (tree_pos > 0) {
+    tree_pos = tree_pos - 5;
     color = ST7735_BLACK;
   } else {
     color = tft.Color565(  0xff,  0xff,  0xff); // to avoid stray pixels due to border effects
@@ -200,6 +208,64 @@ void update_game() {
     //tft.fillRoundRect(tree_pos+8+25,115-8,4,10,1.5,ST7735_GREEN);
 
   }
+  if (cloud_type == 1) {
+    //drawBitmap(cloud_pos, cloud_height, cloud_big, 18, 8, tft.Color565(  0xff,  0xff,  0xff));
+    tft.fillRoundRect(cloud_pos, cloud_height, 18, 8, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+  } else if (cloud_type == 2) {
+    //drawBitmap(cloud_pos, cloud_height, cloud_small, 11, 8, tft.Color565(  0xff,  0xff,  0xff));
+    tft.fillRoundRect(cloud_pos, cloud_height, 11, 8, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+  }
+  if (cloud_pos > 0) {
+    cloud_pos = cloud_pos - 0.5;
+  }
+  else {
+    if (cloud_type == 1) {
+    tft.fillRoundRect(cloud_pos, cloud_height, 18, 8, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+  } else if (cloud_type == 2) {
+    tft.fillRoundRect(cloud_pos, cloud_height, 11, 8, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+  }
+    cloud_pos = random(30,161);
+    cloud_type = random(1, 3);
+    cloud_height = random(20, 30);
+  }
+  if (cloud_type == 1) {
+    tft.fillRoundRect(cloud_pos, cloud_height, 18, 8, 1.5, tft.Color565(  0x80,  0x80,  0x80));
+    //drawBitmap(cloud_pos, cloud_height, cloud_big, 18, 8, tft.Color565(  0x00,  0x00,  0x00));
+  } else if (cloud_type == 2) {
+    tft.fillRoundRect(cloud_pos, cloud_height, 11, 8, 1.5, tft.Color565(  0x80,  0x80,  0x80));
+    //drawBitmap(cloud_pos, cloud_height, cloud_small, 11, 8, tft.Color565(  0x00,  0x00,  0x00));
+  }
+
+  
+
+  if (cloud_type1 == 1) {
+    //drawBitmap(cloud_pos, cloud_height, cloud_big, 18, 8, tft.Color565(  0xff,  0xff,  0xff));
+    tft.fillRoundRect(cloud_pos1, cloud_height1, 18, 8, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+  } else if (cloud_type1 == 2) {
+    //drawBitmap(cloud_pos, cloud_height, cloud_small, 11, 8, tft.Color565(  0xff,  0xff,  0xff));
+    tft.fillRoundRect(cloud_pos1, cloud_height1, 11, 8, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+  }
+  if (cloud_pos1 > 0) {
+    cloud_pos1 = cloud_pos1 - 0.5;
+  }
+  else {
+    if (cloud_type1 == 1) {
+    tft.fillRoundRect(cloud_pos1, cloud_height1, 18, 8, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+  } else if (cloud_type1 == 2) {
+    tft.fillRoundRect(cloud_pos1, cloud_height1, 11, 8, 1.5, tft.Color565(  0xff,  0xff,  0xff));
+  }
+    cloud_pos1 = random(30,161);
+    cloud_type1 = random(1, 3);
+    cloud_height1 = random(20, 40);
+  }
+  if (cloud_type1 == 1) {
+    tft.fillRoundRect(cloud_pos1, cloud_height1, 18, 8, 1.5, tft.Color565(  0x80,  0x80,  0x80));
+    //drawBitmap(cloud_pos, cloud_height, cloud_big, 18, 8, tft.Color565(  0x00,  0x00,  0x00));
+  } else if (cloud_type1 == 2) {
+    tft.fillRoundRect(cloud_pos1, cloud_height1, 11, 8, 1.5, tft.Color565(  0x80,  0x80,  0x80));
+    //drawBitmap(cloud_pos, cloud_height, cloud_small, 11, 8, tft.Color565(  0x00,  0x00,  0x00));
+  }
+
 
 }
 
@@ -225,34 +291,58 @@ void setup() {
   tft.initR(INITR_BLACKTAB);
   tft.setRotation(3);
   tft.fillScreen(tft.Color565(  0xff,  0xff,  0xff));
+  tft.setCursor(25, 40);
+  tft.setTextColor(ST7735_RED);
+  tft.setTextSize(2);
+  tft.print("Dino Game");
+  tft.setCursor(20,60);
+  tft.setTextColor(ST7735_RED);
+  tft.setTextSize(1);
+  tft.print("Press ENTER to start");
+  tft.setCursor(50,75);
+  tft.setTextColor(ST7735_BLUE);
+  tft.setTextSize(1);
+  tft.print("By: TextZip");
+  
 
-  //drawBitmap(10, 97,body,trunk_w,trunk_l, 0x0000);
-  //drawBitmap(10, 97+25,leg1,leg_w,leg_l, 0x0000);
+  drawBitmap(10, 97,body,trunk_w,trunk_l, 0x0000);
   //game_over();
+  //drawBitmap(20, 20,cloud_big,31,16,tft.Color565(  0x00,  0x00,  0x00));
+  //drawBitmap(20, 40,cloud_small,21,16,tft.Color565(  0x00,  0x00,  0x00));
+
+
 
 
 }
 
-void loop(){
-  while (game_running){
+void loop() {
+  if(main_menu){
+    drawBitmap(10, 97+25,leg1,leg_w,leg_l, 0x0000);
+    delay(250);
+    drawBitmap(10, 97+25,leg1,leg_w,leg_l, tft.Color565(  0xff,  0xff,  0xff));
+    drawBitmap(10, 97+25,leg2,leg_w,leg_l, 0x0000);
+    delay(250);
+    drawBitmap(10, 97+25,leg2,leg_w,leg_l, tft.Color565(  0xff,  0xff,  0xff));
+  }
+  while (game_running) {
     tft.fillRect(80, 2, 80, 15, tft.Color565(  0xff,  0xff,  0xff));
-  tft.setCursor(80, 2);
-  tft.setTextColor(ST7735_RED);
-  tft.setTextSize(2);
-  tft.print((millis()-score)/ 1000);
-  //update_game();
-  //display_game();
-  loops = 0;
-  while ( millis() > next_game_tick && loops < MAX_FRAMESKIP) {
-    update_game();
+    tft.setCursor(80, 2);
+    tft.setTextColor(ST7735_RED);
+    tft.setTextSize(2);
+    tft.print((millis() - score) / 1000);
+    //update_game();
+    //display_game();
+    loops = 0;
+    while ( millis() > next_game_tick && loops < MAX_FRAMESKIP) {
+      update_game();
 
-    next_game_tick += SKIP_TICKS;
-    loops++;
+      next_game_tick += SKIP_TICKS;
+      loops++;
+    }
+
+    display_game();
+
+
   }
 
-  display_game();
-
-    
-  }
-  
 }
